@@ -13,7 +13,7 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           issue_numbers=$(echo "$branch_name" | grep -oE '[0-9]+')
-          echo "::set-output name=issue_numbers::$issue_numbers"
+          echo "::set-output name=issue_numbers::$(echo "$issue_numbers" | tr '\n' ',')"
 
       - name: Update PR Body
         uses: actions/github-script@v4
@@ -21,11 +21,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issueNumbers = '${{ steps.extract-issue-numbers.outputs.issue_numbers }}';
-            const prBody = `${{ github.event.pull_request.body }}\n\nRelated issues: ${issueNumbers
-              .split('\n')
-              .filter(Boolean)
-              .map(issueNumber => `[${issueNumber}](https://github.com/${{ github.repository_owner }}/${{ github.repository }}/issues/${issueNumber})`)
-              .join(', ')}`;
+            const prBody = `${{ github.event.pull_request.body }}\n\nRelated issues: ${issueNumbers}`;
             await github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,

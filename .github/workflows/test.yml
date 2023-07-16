@@ -12,8 +12,8 @@ jobs:
         id: extract-issue-numbers
         run: |
           branch_name="${{ github.head_ref }}"
-          issue_numbers=$(echo "$branch_name" | grep -oE '[0-9]+')
-          echo "::set-output name=issue_numbers::$(echo "$issue_numbers" | tr '\n' ',')"
+          issue_numbers=$(echo "$branch_name" | grep -oE '[0-9]+' | awk '{printf "#%s,", $0}' | sed 's/,$//')
+          echo "::set-output name=issue_numbers::$issue_numbers"
 
       - name: Update PR Body
         uses: actions/github-script@v4

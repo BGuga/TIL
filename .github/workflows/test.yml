@@ -8,20 +8,24 @@ jobs:
   update_pr_body:
     runs-on: ubuntu-latest
     steps:
-      - name: Extract Issue Number
-        id: extract-issue-number
+      - name: Extract Issue Numbers
+        id: extract-issue-numbers
         run: |
           branch_name="${{ github.head_ref }}"
-          issue_number=$(echo "$branch_name" | grep -oE '[0-9]+')
-          echo "::set-output name=issue_number::$issue_number"
+          issue_numbers=$(echo "$branch_name" | grep -oE '[0-9]+')
+          echo "::set-output name=issue_numbers::$issue_numbers"
 
       - name: Update PR Body
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issueNumber = '${{ steps.extract-issue-number.outputs.issue_number }}';
-            const prBody = `${{ github.event.pull_request.body }}\n\nRelated issue: [${issueNumber}](https://github.com/${{ github.repository_owner }}/${{ github.repository }}/issues/${issueNumber})`;
+            const issueNumbers = '${{ steps.extract-issue-numbers.outputs.issue_numbers }}';
+            const prBody = `${{ github.event.pull_request.body }}\n\nRelated issues: ${issueNumbers
+              .split('\n')
+              .filter(Boolean)
+              .map(issueNumber => `[${issueNumber}](https://github.com/${{ github.repository_owner }}/${{ github.repository }}/issues/${issueNumber})`)
+              .join(', ')}`;
             await github.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
